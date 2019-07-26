@@ -1,0 +1,117 @@
+#!/bin/bash
+
+FILE="$1"
+QUALITY="$2"
+MAXHEIGHT=$3
+
+PORTRAITSIZE=1000  # in ko
+PAYSAGESIZE=2000  # in ko
+
+function unarchive-comic {
+    # If / Elif : unarchive file (rar or zip)
+    # Test if archive is RAR
+    if [[ $(file --mime-type -b "$FILE") == application/x-rar ]]; then
+        echo "$FILE is rared"
+        DIR="${FILE%.*}"
+        mkdir "$DIR"
+        echo "Extraction de $FILE"
+        unrar x ./"$FILE" -o "$DIR" -idq
+
+    # Test if archive is ZIP
+    elif [[ $(file --mime-type -b "$FILE") == application/zip ]]; then
+        echo "$FILE is zipped"
+        echo "Nettoyage de __MACOSX, .DS_Store, desktop.ini"
+        zip -d "$FILE" "__MACOSX*" &>/dev/null
+        zip -d "$FILE" "*.DS_Store" &>/dev/null
+        zip -d "$FILE" "*desktop.ini" &>/dev/null
+        DIR="${FILE%.*}"
+        mkdir "$DIR"
+        unzip -q "$FILE" -d "$DIR"
+    else
+        echo "$FILE is not RAR or ZIP"
+        exit 1
+    fi
+}
+
+function smallify-jpeg {
+    IMG=$1
+    WIDTH=$(identify -format "%w" "$IMG")> /dev/null
+    HEIGHT=$(identify -format "%h" "$IMG")> /dev/null
+    SIZE=$(du -k "$IMG" | cut -f1)
+    PORTRAIT=true
+    if (( $HEIGHT > $WIDTH )); then PORTRAIT=true; else PORTRAIT=false; fi
+    echo "Dimensions : $WIDTH x $HEIGHT. Poids = $SIZE ko" Portrait ? $PORTRAIT
+    if $PORTRAIT ; then
+        # echo portrait
+        MAXSIZE=$PORTRAITSIZE
+    else
+        # echo paysage
+        MAXSIZE=$PAYSAGESIZE
+    fi
+
+    # HEIGHT > MAX and SIZE > MAX ?
+    if [[ $HEIGHT -gt $MAXHEIGHT && $SIZE -gt $MAXSIZE ]]; then
+        echo "magick size and quality !"
+	    magick "$IMG" -quality $QUALITY -geometry x$MAXHEIGHT "$IMG"
+    # HEIGHT > MAX but SIZE already ok ?
+    elif [[ $HEIGHT -gt $MAXHEIGHT && $SIZE -le $MAXSIZE ]]; then
+        echo "magick size only"
+        magick "$IMG" -geometry x$MAXHEIGHT "$IMG"
+    # HEIGHT is ok (< MAX) but SIZE is too big ?
+    elif [[ $SIZE -gt $MAXSIZE ]]; then
+        echo "magick quality only"
+        magick "$IMG" -quality $QUALITY "$IMG"
+    else
+        echo "Nothing to do, jpeg already small"
+    fi
+}
+
+function smallify-png {
+    IMG=$1
+    HEIGHT=$(identify -format "%h" "$IMG")> /dev/null
+    if [[ $HEIGHT > $MAXHEIGHT ]]; then
+        echo "magick size only (png)"
+        magick "$IMG" -geometry x$MAXHEIGHT "$IMG"
+    fi
+}
+
+function archive-comic {
+    if [[ $FILE == *.cbz ]]; then
+        echo "Création archive $FILE"
+        pushd "$DIR" 1>/dev/null || return
+        zip -q -r "../Smaller_comics/$FILE" *
+        popd 1>/dev/null || return
+        rm -r "$DIR"
+    elif [[ $FILE == *.cbr ]]; then
+        echo "Création archive $FILE"
+        rar a -ma4 -r -ep1 "Smaller_comics/$FILE" "$DIR/" -idq
+        rm -r "$DIR"
+    else
+        echo "Fichier non pris en charge"
+    fi
+}
+
+unarchive-comic
+
+# Smallify jpeg with Image Magick voodoo
+echo "Réduction des images"
+pushd "$DIR" 1>/dev/null || return
+
+# smallify all jpg
+find . -type f -iname "*.jpg" -print0 | \
+    (while read -d $'\0' i; do smallify-jpeg "$i";  done)
+
+# smallify all jpeg
+find . -type f -iname "*.jpeg" -print0 | \
+    (while read -d $'\0' i; do smallify-jpeg "$i";  done)
+
+# smallify all png
+find . -type f -iname "*.png" -print0 | \
+    (while read -d $'\0' i; do smallify-png "$i";  done)
+
+popd 1>/dev/null || return
+
+mkdir -p Smaller_comics
+
+# make new archive
+archive-comic

@@ -1,0 +1,8 @@
+#!/bin/bash
+
+for FILE in *{.cbr,.CBR,.cbz,.CBZ}
+do
+	[ -e "$FILE" ] || continue
+	smallify "$FILE" 70 1920
+	echo "------------------------"
+done
