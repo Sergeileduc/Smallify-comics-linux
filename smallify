@@ -98,7 +98,7 @@ function smallify-jpeg {
     HEIGHT=$(identify -format "%h" "$IMG")> /dev/null
     SIZE=$(du -k "$IMG" | cut -f1)
     PORTRAIT=true
-    if (( $HEIGHT > $WIDTH )); then PORTRAIT=true; else PORTRAIT=false; fi
+    if (( HEIGHT > WIDTH )); then PORTRAIT=true; else PORTRAIT=false; fi
     # echo "Dimensions : $WIDTH x $HEIGHT. Poids = $SIZE ko" Portrait ? $PORTRAIT
     if $PORTRAIT ; then
         # echo portrait
@@ -111,15 +111,15 @@ function smallify-jpeg {
     # HEIGHT > MAX and SIZE > MAX ?
     if [[ $HEIGHT -gt $MAXHEIGHT && $SIZE -gt $MAXSIZE ]]; then
         # echo "magick size and quality !"
-	    convert "$IMG" -quality $QUALITY -geometry x$MAXHEIGHT "$IMG"
+	    convert "$IMG" -quality "$QUALITY" -geometry x"$MAXHEIGHT" "$IMG"
     # HEIGHT > MAX but SIZE already ok ?
     elif [[ $HEIGHT -gt $MAXHEIGHT && $SIZE -le $MAXSIZE ]]; then
         # echo "magick size only"
-        convert "$IMG" -geometry x$MAXHEIGHT "$IMG"
+        convert "$IMG" -geometry x"$MAXHEIGHT" "$IMG"
     # HEIGHT is ok (< MAX) but SIZE is too big ?
     elif [[ $SIZE -gt $MAXSIZE ]]; then
         # echo "magick quality only"
-        convert "$IMG" -quality $QUALITY "$IMG"
+        convert "$IMG" -quality "$QUALITY" "$IMG"
     else
         # echo "Nothing to do, jpeg already small"
         :
@@ -131,7 +131,7 @@ function smallify-png {
     HEIGHT=$(identify -format "%h" "$IMG")> /dev/null
     if [[ $HEIGHT > $MAXHEIGHT ]]; then
         echo "magick size only (png)"
-        convert "$IMG" -geometry x$MAXHEIGHT "$IMG"
+        convert "$IMG" -geometry x"$MAXHEIGHT" "$IMG"
     fi
 }
 
@@ -139,13 +139,13 @@ function archive-comic {
     if [[ $FILE == *.cbz ]]; then
         echo "Création archive $FILE"
         pushd "$WORKING/$DIR" 1>/dev/null || return
-        zip -q -r "../../$FOLDER/$FILE" *
+        zip -q -r "../../$FOLDER/$FILE" -- *
         popd 1>/dev/null || return
-        rm -r "$WORKING/$DIR"
+        rm -r "${WORKING:?}/$DIR"
     elif [[ $FILE == *.cbr ]]; then
         echo "Création archive $FILE"
         rar a -ma4 -r -ep1 "$FOLDER/$FILE" "$WORKING/$DIR/" -idq
-        rm -r "$WORKING/$DIR"
+        rm -r "${WORKING:?}/$DIR"
     else
         echo "Fichier non pris en charge"
     fi
