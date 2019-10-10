@@ -1,6 +1,8 @@
 #!/usr/bin/python3
 # -*- coding: UTF-8 -*-
-"""Reduce size of comics in cbz and cbr, recursively in sub-folders."""
+"""Reduce size of comics in cbz and cbr, recursively in sub-folders.
+v1.0
+"""
 
 import os
 import subprocess
