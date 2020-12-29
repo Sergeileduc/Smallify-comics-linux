@@ -4,6 +4,10 @@
 smallifiy uses Image Magick, please install first
 `sudo apt-get install imagemagick`
 
+for CBR files, you'll need rar and unrar:
+
+`sudo apt install rar unrar`
+
 smallify-recurse is a Python3 script (you need Python3)
 
 ## Install
