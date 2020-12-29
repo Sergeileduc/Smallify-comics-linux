@@ -50,7 +50,7 @@ while :; do
                 echo "Destination folder : '$FOLDER'"
                 shift
             else
-                die 'ERROR: "--file" requires a non-empty option argument.'
+                die 'ERROR: "--folder" requires a non-empty option argument.'
             fi
             ;;
         --)              # End of all options.

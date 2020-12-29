@@ -25,6 +25,12 @@ parser = argparse.ArgumentParser()
 parser.add_argument('-d', '--depth', type=int,
                     help="depth of recursivity.\n"
                     "-d 0 for current folder only")
+parser.add_argument('-q', '--quality', type=int,
+                    help="jpeg quality (0 to 100).\n"
+                    "default is 70")
+parser.add_argument('-s', '--size', type=int,
+                    help="Image height.\n"
+                    "default is 1920")
 parser.add_argument('-f', '--folder', type=str,
                     help="Custom folder for smallified comics")
 parser.add_argument('-r', '--replace', action='store_true',
@@ -38,6 +44,16 @@ else:
     MAX_DEPTH = 100
     print('Infinite depth (100)')
 
+if args.quality:
+    QUALITY = args.quality
+    command.extend(['-q', str(QUALITY)])
+    print(f"Quality is {QUALITY}")
+
+if args.size:
+    SIZE = args.size
+    command.extend(['-s', str(SIZE)])
+    print(f"Height is {SIZE}")
+
 if args.replace is not None:
     if args.replace:
         print("REPLACE mode")
@@ -50,6 +66,7 @@ if args.folder is not None:
     command.extend(['-f', custom_folder])
 
 print("Launching smallify-all in current folder")
+# print(command)
 subprocess.call(command)
 
 if MAX_DEPTH > 0:
