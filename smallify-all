@@ -5,6 +5,7 @@
 REPLACE=1 # 1 is False
 QUALITY=70
 HEIGHT=1920
+FOLDER="Smaller_comics"
 
 usage="$(cat <<-EOF
 Example :
@@ -39,7 +40,7 @@ while :; do
         -q|--quality)       # Takes an option argument; ensure it has been specified.
             if [ "$2" ]; then
                 QUALITY="$2"
-                echo "Jpeg quality : '$QUALITY'"
+                # echo "Jpeg quality : '$QUALITY'"
                 shift
             else
                 die 'ERROR: "--quality" requires a non-empty option argument.'
@@ -48,7 +49,7 @@ while :; do
         -s|--size)       # Takes an option argument; ensure it has been specified.
             if [ "$2" ]; then
                 HEIGHT="$2"
-                echo "Image new height : '$HEIGHT'"
+                # echo "Image new height : '$HEIGHT'"
                 shift
             else
                 die 'ERROR: "--height" requires a non-empty option argument.'
@@ -80,6 +81,9 @@ while :; do
     shift
 done
 
+echo "***launching smallify-all in $PWD"
+echo "***smallify-all launched with quality $QUALITY and size $SIZE. Replace flag is $REPLACE and folder is $FOLDER*******"
+
 for FILE in *{.cbr,.CBR,.cbz,.CBZ}
 do
     # echo "smallify $FILE 70 1920 $params"
@@ -99,5 +103,5 @@ do
     else
         smallify "$FILE" "$QUALITY" "$HEIGHT"
     fi
-    echo "------------------------"
+    echo "====================================================================="
 done

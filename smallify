@@ -47,7 +47,7 @@ while :; do
         -f|--folder)       # Takes an option argument; ensure it has been specified.
             if [ "$2" ]; then
                 FOLDER="$2"
-                echo "Destination folder : '$FOLDER'"
+                echo "------Destination folder : '$FOLDER'"
                 shift
             else
                 die 'ERROR: "--folder" requires a non-empty option argument.'
@@ -71,25 +71,25 @@ function unarchive-comic {
     # If / Elif : unarchive file (rar or zip)
     # Test if archive is RAR
     if [[ $(file --mime-type -b "$FILE") == application/x-rar ]]; then
-        echo "$FILE is rared"
+        echo "------$FILE is rared"
         DIR="${FILE%.*}"
         mkdir -p "$WORKING/$DIR"
-        echo "Extraction de $FILE"
+        echo "------Extraction de $FILE"
         unrar x ./"$FILE" -o "$WORKING/$DIR" -idq
 
     # Test if archive is ZIP
     elif [[ $(file --mime-type -b "$FILE") == application/zip ]]; then
-        echo "$FILE is zipped"
-        echo "Nettoyage de __MACOSX, .DS_Store, desktop.ini"
+        echo "------$FILE is zipped"
+        echo "------Nettoyage de __MACOSX, .DS_Store, desktop.ini"
         zip -d "$FILE" "__MACOSX*" &>/dev/null
         zip -d "$FILE" "*.DS_Store" &>/dev/null
         zip -d "$FILE" "*desktop.ini" &>/dev/null
         DIR="${FILE%.*}"
         mkdir -p "$WORKING/$DIR"
-        echo "Extraction de $FILE"
+        echo "------Extraction de $FILE"
         unzip -q "$FILE" -d "$WORKING/$DIR"
     else
-        echo "$FILE is not RAR or ZIP"
+        echo "------$FILE is not RAR or ZIP"
         exit 1
     fi
 }
@@ -101,29 +101,29 @@ function smallify-jpeg {
     SIZE=$(du -k "$IMG" | cut -f1)
     PORTRAIT=true
     if (( HEIGHT > WIDTH )); then PORTRAIT=true; else PORTRAIT=false; fi
-    # echo "Dimensions : $WIDTH x $HEIGHT. Poids = $SIZE ko" Portrait ? $PORTRAIT
+    # echo "------Dimensions : $WIDTH x $HEIGHT. Poids = $SIZE ko" Portrait ? $PORTRAIT
     if $PORTRAIT ; then
         # echo portrait
         MAXSIZE=$PORTRAITSIZE
     else
-        # echo paysage
+        # echo ------paysage
         MAXSIZE=$PAYSAGESIZE
     fi
 
     # HEIGHT > MAX and SIZE > MAX ?
     if [[ $HEIGHT -gt $MAXHEIGHT && $SIZE -gt $MAXSIZE ]]; then
-        # echo "magick size and quality !"
+        # echo "------magick size and quality !"
 	    magick convert "$IMG" -quality "$QUALITY" -geometry x"$MAXHEIGHT" "$IMG"
     # HEIGHT > MAX but SIZE already ok ?
     elif [[ $HEIGHT -gt $MAXHEIGHT && $SIZE -le $MAXSIZE ]]; then
-        # echo "magick size only"
+        # echo "------magick size only"
         magick convert "$IMG" -geometry x"$MAXHEIGHT" "$IMG"
     # HEIGHT is ok (< MAX) but SIZE is too big ?
     elif [[ $SIZE -gt $MAXSIZE ]]; then
-        # echo "magick quality only"
+        # echo "------magick quality only"
         magick convert "$IMG" -quality "$QUALITY" "$IMG"
     else
-        # echo "Nothing to do, jpeg already small"
+        # echo "------Nothing to do, jpeg already small"
         :
     fi
 }
@@ -132,24 +132,24 @@ function smallify-png {
     IMG=$1
     HEIGHT=$(identify -format "%h" "$IMG")> /dev/null
     if [[ $HEIGHT > $MAXHEIGHT ]]; then
-        echo "magick size only (png)"
+        # echo "------magick size only (png)"
         magick convert "$IMG" -geometry x"$MAXHEIGHT" "$IMG"
     fi
 }
 
 function archive-comic {
     if [[ $FILE == *.cbz ]]; then
-        echo "Création archive $FILE"
+        echo "------Création archive $FILE"
         pushd "$WORKING/$DIR" 1>/dev/null || return
         zip -q -r "../../$FOLDER/$FILE" -- *
         popd 1>/dev/null || return
         rm -r "${WORKING:?}/$DIR"
     elif [[ $FILE == *.cbr ]]; then
-        echo "Création archive $FILE"
+        echo "------Création archive $FILE"
         rar a -ma4 -r -ep1 "$FOLDER/$FILE" "$WORKING/$DIR/" -idq
         rm -r "${WORKING:?}/$DIR"
     else
-        echo "Fichier non pris en charge"
+        echo "------Fichier non pris en charge"
     fi
 }
 
@@ -158,44 +158,43 @@ function check-comic {
     # if [[ $FILE == *.cbz ]]; then
     if [[ $(file --mime-type -b "$FILE") == application/zip ]]; then
         if unzip -tq "$FILE"; then
-            echo "$FILE is OK"
+            echo "------$FILE is OK"
              # 0 = true
              popd 1>/dev/null || return
              return 0
         else
             # 1 = false
-            echo "$FILE is KO !!!!!!!!!"
+            echo "------$FILE is KO !!!!!!!!!"
             popd 1>/dev/null || return
             return 1
         fi
     elif [[ $(file --mime-type -b "$FILE") == application/x-rar ]]; then
         if unrar t "$FILE" -idq; then
-            echo "$FILE is OK"
+            echo "------$FILE is OK"
              # 0 = true
              popd 1>/dev/null || return
              return 0
         else
-            echo "$FILE is KO !!!!!!!!!"
+            echo "------$FILE is KO !!!!!!!!!"
             # 1 = false
             popd 1>/dev/null || return
             return 1
         fi
     else
-        echo "$FILE is not RAR or ZIP"
+        echo "------$FILE is not RAR or ZIP"
         exit 1
     fi
-    # echo "COUCOU"
 }
 
 function move-comic {
-    echo "moving $FILE"
+    echo "------moving $FILE"
     mv -f "$FOLDER/$FILE" .
 }
 
 unarchive-comic
 
 # Smallify jpeg with Image Magick voodoo
-echo "Réduction des images"
+echo "------Réduction des images"
 pushd "$WORKING/$DIR" 1>/dev/null || return
 
 # smallify all jpg
@@ -218,12 +217,12 @@ mkdir -p "$FOLDER"
 archive-comic
 
 if [[ $REPLACE -eq 0 ]]; then
-    echo "Remplacement des fichiers !!!!"
+    echo "------Remplacement des fichiers !!!!"
     # Check integrity and move
     if check-comic; then move-comic; fi
     rmdir "$FOLDER"
 else
-    if check-comic; then echo "Fichiers non remplacés, situés dans '$FOLDER'"; fi
+    if check-comic; then echo "------Fichiers non remplacés, situés dans '$FOLDER'"; fi
 fi
 
 
