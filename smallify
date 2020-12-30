@@ -113,15 +113,15 @@ function smallify-jpeg {
     # HEIGHT > MAX and SIZE > MAX ?
     if [[ $HEIGHT -gt $MAXHEIGHT && $SIZE -gt $MAXSIZE ]]; then
         # echo "------magick size and quality !"
-	    magick convert "$IMG" -quality "$QUALITY" -geometry x"$MAXHEIGHT" "$IMG"
+	    convert "$IMG" -quality "$QUALITY" -geometry x"$MAXHEIGHT" "$IMG"
     # HEIGHT > MAX but SIZE already ok ?
     elif [[ $HEIGHT -gt $MAXHEIGHT && $SIZE -le $MAXSIZE ]]; then
         # echo "------magick size only"
-        magick convert "$IMG" -geometry x"$MAXHEIGHT" "$IMG"
+        convert "$IMG" -geometry x"$MAXHEIGHT" "$IMG"
     # HEIGHT is ok (< MAX) but SIZE is too big ?
     elif [[ $SIZE -gt $MAXSIZE ]]; then
         # echo "------magick quality only"
-        magick convert "$IMG" -quality "$QUALITY" "$IMG"
+        convert "$IMG" -quality "$QUALITY" "$IMG"
     else
         # echo "------Nothing to do, jpeg already small"
         :
@@ -133,7 +133,7 @@ function smallify-png {
     HEIGHT=$(identify -format "%h" "$IMG")> /dev/null
     if [[ $HEIGHT > $MAXHEIGHT ]]; then
         # echo "------magick size only (png)"
-        magick convert "$IMG" -geometry x"$MAXHEIGHT" "$IMG"
+        convert "$IMG" -geometry x"$MAXHEIGHT" "$IMG"
     fi
 }
 
