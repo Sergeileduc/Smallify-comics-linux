@@ -59,13 +59,13 @@ if args.replace is not None:
         print("REPLACE mode")
         command.append('-r')
     else:
-        print("NOMRMAL mode")
+        print("NOMRMAL mode (no replace)")
 
 if args.folder is not None:
     custom_folder = args.folder
     command.extend(['-f', custom_folder])
 
-print("Launching smallify-all in current folder")
+# print("Launching smallify-all in current folder")
 # print(command)
 subprocess.call(command)
 
@@ -82,7 +82,7 @@ if MAX_DEPTH > 0:
                 else:
                     try:
                         os.chdir(path)
-                        print("Launching smallify-all in " + path)
+                        # print("Launching smallify-all in " + path)
                         subprocess.call(command)
                         os.chdir(previous_dir)
                     except Exception as e:
