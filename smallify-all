@@ -3,6 +3,8 @@
 #v1.0
 
 REPLACE=1 # 1 is False
+SKIP=1 # 1 is False
+SKIPSIZE=0
 QUALITY=70
 HEIGHT=1920
 FOLDER="Smaller_comics"
@@ -27,6 +29,7 @@ where:
     -f, --folder    set the folder where to save smallified comics
     -q, --quality   set the jpeg quality (0 to 100, default is 70)
     -s, --size      set the new image height (default is 1920)
+    -k, --skip      skip files if under size (in Mo)
 EOF
 )"
 
@@ -55,8 +58,18 @@ while :; do
                 die 'ERROR: "--height" requires a non-empty option argument.'
             fi
             ;;
-        -r|--replace)       # Takes an option argument; ensure it has been specified.
+        -r|--replace)
             REPLACE=0
+            ;;
+        -k|--skip)      # Takes an option argument; ensure it has been specified.
+            SKIP=0
+            if [ "$2" ]; then
+                SKIPSIZE="$2"
+                # echo "Image new height : '$HEIGHT'"
+                shift
+            else
+                die 'ERROR: "--skip" requires a non-empty option argument.'
+            fi
             ;;
         -f|--folder)       # Takes an option argument; ensure it has been specified.
             if [ "$2" ]; then
@@ -90,8 +103,13 @@ do
     # second argument is jpeg quality
     # third argument is the new height of pictures
     [ -e "$FILE" ] || continue
+    # skip ?
+    FILESIZE=$(du -m "$FILE" | cut -f1)
+    if [[ $SKIP -eq 0 && "$FILESIZE" -lt "$SKIPSIZE" ]]; then
+        echo "$FILE is too small -> skipping"
+        continue
     # Stupid mode, because folder is finally deleted in replace mode
-    if [[ $REPLACE -eq 0 && ! -z "$FOLDER" ]]; then
+    elif [[ $REPLACE -eq 0 && ! -z "$FOLDER" ]]; then
         smallify "$FILE" "$QUALITY" "$HEIGHT" -r -f "$FOLDER"
     # Replace mode, -r option
     elif [[ $REPLACE -eq 0 ]]; then

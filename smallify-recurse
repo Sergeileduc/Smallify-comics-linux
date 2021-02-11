@@ -35,9 +35,11 @@ parser.add_argument('-f', '--folder', type=str,
                     help="Custom folder for smallified comics")
 parser.add_argument('-r', '--replace', action='store_true',
                     help="REPLACE YOUR COMICS ! CAREFUL")
+parser.add_argument('-k', '--skip', type=int,
+                    help="Skip files under this size (in Mo).")
 args = parser.parse_args()
 
-if args.depth is not None:
+if args.depth:
     MAX_DEPTH = args.depth
     print(f'Depth is {MAX_DEPTH}')
 else:
@@ -54,16 +56,20 @@ if args.size:
     command.extend(['-s', str(SIZE)])
     print(f"Height is {SIZE}")
 
-if args.replace is not None:
-    if args.replace:
-        print("REPLACE mode")
-        command.append('-r')
-    else:
-        print("NOMRMAL mode (no replace)")
+if args.replace:
+    print("REPLACE mode")
+    command.append('-r')
+else:
+    print("NOMRMAL mode (no replace)")
 
-if args.folder is not None:
+if args.folder:
     custom_folder = args.folder
     command.extend(['-f', custom_folder])
+
+if args.skip:
+    SKIPSIZE = args.skip
+    command.extend(['-k', str(SKIPSIZE)])
+    print(f"Skipping files under {SKIPSIZE} Mo")
 
 # print("Launching smallify-all in current folder")
 # print(command)

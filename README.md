@@ -43,8 +43,12 @@ Safe to use
 This will REPLACE your original comics !! BE CAREFUL !
 
 JPEG quality and image height can be specified with -q and -s options
-`smallif-all -q 70 -s 1920`
-`smallif-all -q 70 -s 1920 --replace`
+`smallify-all -q 70 -s 1920`
+`smallify-all -q 70 -s 1920 --replace`
+
+You are able to 'skip' files under a certain size (in Mo) with -k (or --skip) option
+`smallify-all -k 20`
+`smallify-all -q 70 -s 1920 --replace --skip 20`
 
 ### Recursivity
 For recursive, you can use :
@@ -67,6 +71,7 @@ Other options ar the same.
 * -f, --folder  : choose a name for your smallified comics output folder
 * -q QUALITY, --quality QUALITY : jpeg quality (0 to 100). default is 70
 * -s SIZE, --size SIZE  Image height. default is 1920
+* -k SKIP, --skip SKIP  Skip files under this size (in Mo).
 
 `smallify-recurse -r` or `smallify-recurse --replace` will replace your comics, with a top-down recursivity.
 Be careful !
@@ -78,6 +83,8 @@ Arguments can be mixed :
 `smallify-recurse -d0 -f "my folder"`
 
 `smallify-recurse -q 70 -s 1920 -r`
+
+`smallify-recurse -q 70 -s 1920 -r -k 20`
 
 ## License
 [GNU General Public License version 3](https://opensource.org/licenses/GPL-3.0)
