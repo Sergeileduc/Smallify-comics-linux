@@ -80,10 +80,11 @@ function unarchive-comic {
     # Test if archive is ZIP
     elif [[ $(file --mime-type -b "$FILE") == application/zip ]]; then
         echo "------$FILE is zipped"
-        echo "------Nettoyage de __MACOSX, .DS_Store, desktop.ini"
+        echo "------Nettoyage de __MACOSX, .DS_Store, desktop.ini, Thumbs.db"
         zip -d "$FILE" "__MACOSX*" &>/dev/null
         zip -d "$FILE" "*.DS_Store" &>/dev/null
         zip -d "$FILE" "*desktop.ini" &>/dev/null
+        zip -d "$FILE" "*Thumbs.db" &>/dev/null
         DIR="${FILE%.*}"
         mkdir -p "$WORKING/$DIR"
         echo "------Extraction de $FILE"
