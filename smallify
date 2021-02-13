@@ -47,7 +47,7 @@ while :; do
         -f|--folder)       # Takes an option argument; ensure it has been specified.
             if [ "$2" ]; then
                 FOLDER="$2"
-                echo "------Destination folder : '$FOLDER'"
+                # echo "------Destination folder : '$FOLDER'"
                 shift
             else
                 die 'ERROR: "--folder" requires a non-empty option argument.'
@@ -90,16 +90,16 @@ function unarchive-comic {
         echo "------Extraction de $FILE"
         unzip -q "$FILE" -d "$WORKING/$DIR"
     else
-        echo "------$FILE is not RAR or ZIP"
+        echo "------WARNING : $FILE is not RAR or ZIP, skipping."
         exit 1
     fi
 }
 
 function smallify-jpeg {
     IMG=$1
-    WIDTH=$(identify -format "%w" "$IMG")> /dev/null
-    HEIGHT=$(identify -format "%h" "$IMG")> /dev/null
-    SIZE=$(du -k "$IMG" | cut -f1)
+    WIDTH=$(identify -format "%w" "$IMG")> /dev/null || return 1
+    HEIGHT=$(identify -format "%h" "$IMG")> /dev/null || return 1
+    SIZE=$(du -k "$IMG" | cut -f1) || return
     PORTRAIT=true
     if (( HEIGHT > WIDTH )); then PORTRAIT=true; else PORTRAIT=false; fi
     # echo "------Dimensions : $WIDTH x $HEIGHT. Poids = $SIZE ko" Portrait ? $PORTRAIT
@@ -114,15 +114,15 @@ function smallify-jpeg {
     # HEIGHT > MAX and SIZE > MAX ?
     if [[ $HEIGHT -gt $MAXHEIGHT && $SIZE -gt $MAXSIZE ]]; then
         # echo "------magick size and quality !"
-	    convert "$IMG" -quality "$QUALITY" -geometry x"$MAXHEIGHT" "$IMG"
+	    convert "$IMG" -quality "$QUALITY" -geometry x"$MAXHEIGHT" "$IMG" || return 1
     # HEIGHT > MAX but SIZE already ok ?
     elif [[ $HEIGHT -gt $MAXHEIGHT && $SIZE -le $MAXSIZE ]]; then
         # echo "------magick size only"
-        convert "$IMG" -geometry x"$MAXHEIGHT" "$IMG"
+        convert "$IMG" -geometry x"$MAXHEIGHT" "$IMG" || return 1
     # HEIGHT is ok (< MAX) but SIZE is too big ?
     elif [[ $SIZE -gt $MAXSIZE ]]; then
         # echo "------magick quality only"
-        convert "$IMG" -quality "$QUALITY" "$IMG"
+        convert "$IMG" -quality "$QUALITY" "$IMG" || return 1
     else
         # echo "------Nothing to do, jpeg already small"
         :
@@ -131,10 +131,10 @@ function smallify-jpeg {
 
 function smallify-png {
     IMG=$1
-    HEIGHT=$(identify -format "%h" "$IMG")> /dev/null
+    HEIGHT=$(identify -format "%h" "$IMG")> /dev/null || return 1
     if [[ $HEIGHT > $MAXHEIGHT ]]; then
         # echo "------magick size only (png)"
-        convert "$IMG" -geometry x"$MAXHEIGHT" "$IMG"
+        convert "$IMG" -geometry x"$MAXHEIGHT" "$IMG" || return 1
     fi
 }
 
@@ -142,15 +142,16 @@ function archive-comic {
     if [[ $FILE == *.cbz ]]; then
         echo "------Création archive $FILE"
         pushd "$WORKING/$DIR" 1>/dev/null || return
-        zip -q -r "../../$FOLDER/$FILE" -- *
+        zip -q -r "../../$FOLDER/$FILE" -- * || return 1
         popd 1>/dev/null || return
         rm -r "${WORKING:?}/$DIR"
     elif [[ $FILE == *.cbr ]]; then
         echo "------Création archive $FILE"
-        rar a -ma4 -r -ep1 "$FOLDER/$FILE" "$WORKING/$DIR/" -idq
-        rm -r "${WORKING:?}/$DIR"
+        rar a -ma4 -r -ep1 "$FOLDER/$FILE" "$WORKING/$DIR/" -idq || return 1
+        rm -r "${WORKING:?}/$DIR" || return
     else
-        echo "------Fichier non pris en charge"
+        echo "------ERROR : Fichier non pris en charge"
+        return 1
     fi
 }
 
@@ -182,7 +183,7 @@ function check-comic {
             return 1
         fi
     else
-        echo "------$FILE is not RAR or ZIP"
+        echo "------ERROR $FILE is not RAR or ZIP and has not been smallified !!!"
         exit 1
     fi
 }
@@ -192,7 +193,10 @@ function move-comic {
     mv -f "$FOLDER/$FILE" .
 }
 
-unarchive-comic
+echo "[`date`]"
+echo $(realpath "$FILE")
+
+unarchive-comic  || exit 1
 
 # Smallify jpeg with Image Magick voodoo
 echo "------Réduction des images"
@@ -221,11 +225,11 @@ if [[ $REPLACE -eq 0 ]]; then
     echo "------Remplacement des fichiers !!!!"
     # Check integrity and move
     if check-comic; then move-comic; fi
-    rmdir "$FOLDER"
+    rm -rf "$FOLDER"
 else
     if check-comic; then echo "------Fichiers non remplacés, situés dans '$FOLDER'"; fi
 fi
 
 
 # rmdir "$FOLDER"
-rmdir $WORKING
+rm -rf $WORKING
