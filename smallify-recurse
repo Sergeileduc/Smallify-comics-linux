@@ -41,7 +41,7 @@ args = parser.parse_args()
 
 if args.depth:
     MAX_DEPTH = args.depth
-    print(f'Depth is {MAX_DEPTH}')
+    print('Depth is', MAX_DEPTH)
 else:
     MAX_DEPTH = 100
     print('Infinite depth (100)')
@@ -49,12 +49,12 @@ else:
 if args.quality:
     QUALITY = args.quality
     command.extend(['-q', str(QUALITY)])
-    print(f"Quality is {QUALITY}")
+    print("Quality is ", QUALITY)
 
 if args.size:
     SIZE = args.size
     command.extend(['-s', str(SIZE)])
-    print(f"Height is {SIZE}")
+    print("Height is", SIZE)
 
 if args.replace:
     print("REPLACE mode")
@@ -69,7 +69,7 @@ if args.folder:
 if args.skip:
     SKIPSIZE = args.skip
     command.extend(['-k', str(SKIPSIZE)])
-    print(f"Skipping files under {SKIPSIZE} Mo")
+    print("Skipping files under", SKIPSIZE)
 
 # print("Launching smallify-all in current folder")
 # print(command)

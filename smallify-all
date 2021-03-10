@@ -95,7 +95,7 @@ while :; do
 done
 
 echo "***launching smallify-all in $PWD"
-echo "***smallify-all launched with quality $QUALITY and size $SIZE. Replace flag is $REPLACE and folder is $FOLDER*******"
+echo "***smallify-all launched with quality $QUALITY and size $HEIGHT. Replace flag is $REPLACE and folder is $FOLDER*******"
 
 for FILE in *{.cbr,.CBR,.cbz,.CBZ}
 do
